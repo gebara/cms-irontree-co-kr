@@ -1,0 +1,45 @@
+version: "3"
+services:
+
+  webserver:
+    image: nginx
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+      - ./komsima.conf:/etc/nginx/conf.d/komsima.conf
+      - ./kculture.conf:/etc/nginx/conf.d/kculture.conf 
+    depends_on:
+      - backend
+      - frontend
+    ports:
+    - "80:80"
+
+  frontend:
+    image: ghcr.io/gebara/irontreecms-frontend:latest
+    environment:
+      RAZZLE_INTERNAL_API_PATH: http://backend:8080/Plone
+    ports:
+    - "3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    image: ghcr.io/gebara/irontreecms-backend:latest
+    environment:
+      SITE: Plone
+      RELSTORAGE_DSN: "dbname='${DB_NAME:-plone}' user='${DB_NAME:-plone}' host='${DB_HOST:-db}' password='${DB_PASSWORD:-kBnniczYjzOY}' port='${DB_PORT:-5432}'"
+    depends_on:
+      - db
+    ports:
+    - "8080:8080"
+
+  db:
+    image: postgres:14.15
+    environment:
+      POSTGRES_USER: plone
+      POSTGRES_PASSWORD: kBnniczYjzOY
+      POSTGRES_DB: plone
+    volumes:
+      - vol-site-data:/var/lib/postgresql/data
+
+volumes:
+  vol-site-data: {}
